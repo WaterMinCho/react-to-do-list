@@ -1,4 +1,11 @@
-import React, { useState, useEffect, KeyboardEvent, ChangeEvent } from "react";
+import React, {
+  useState,
+  useEffect,
+  KeyboardEvent,
+  ChangeEvent,
+  useCallback,
+} from "react";
+import { useCookies } from "react-cookie";
 
 interface Todo {
   id: number;
@@ -28,9 +35,20 @@ function App() {
   const [searchValue, setSearchValue] = useState<string>("");
   const [editingId, setEditingId] = useState<number | null>(null);
 
+  /* 개발중
+  const [cookies, setCookies, removeCookies] = useCookies(); //setCookies('key', 쿠키에 넣을 값, 옵션) , removeCookies('key', 옵션) ,
+  /**
+   * path(string) : 쿠키 경로, / -> 모든 페이지에서 쿠키에 액세스 가능
+   * expires(Date) : 쿠키의 만료 날짜
+   * maxAge(number) : 클라이언트가 쿠키를 수신한 시점부터 들어간 인자값으로 n초후에 쿠키만료
+   * doamin(string) : 쿠키의 도메인(sub.domain.com 또는 .allsubdomains.com)
+   * secure(boolean) : HTTPS를 통해서만 액세스 가능
+   * httpOnly(booelan): 서버만 쿠키에 접근 가능
+   * sameSite (boolean | none | lax | strice) : Strict 또는 Lax 적용
   useEffect(() => {
-    console.log(".>>>>>>>>todos", JSON.stringify(todos));
-  }, [todos]);
+    // setCookies("todos", todos, { path: "/" });
+    // console.log(">>>.todos", todos);
+  }, []);
 
   const customLog = (...args: any[]): void => {
     if (module.hot) {
@@ -38,6 +56,7 @@ function App() {
     }
     console.log(...args);
   };
+   */
 
   // 엔터 키 처리
   const handleKeyEnter = <T extends "add" | "edit">(
@@ -45,21 +64,20 @@ function App() {
   ): void => {
     const { e, pressType } = props;
 
-    if (e.key === "Enter") {
-      if (pressType === "add") {
-        addTodo();
-      }
-      if (pressType === "edit") {
-        finishEditing(props.selectedItem.id, e.currentTarget.value);
-      }
+    if (pressType === "add") {
+      addTodo();
+    }
+    if (pressType === "edit") {
+      const editProps = props as EditKeyEnterProps;
+      finishEditing(editProps.selectedItem.id, e.currentTarget.value);
     }
   };
 
   // 할일 추가
   const addTodo = (): void => {
     if (inputValue.trim() !== "") {
-      setTodos([
-        ...todos,
+      setTodos((prevTodos) => [
+        ...prevTodos,
         { id: Date.now(), text: inputValue, completed: false },
       ]);
       setInputValue("");
@@ -67,36 +85,39 @@ function App() {
   };
 
   // 할일 삭제
-  const deleteTodo = (id: number): void => {
-    setTodos(todos.filter((todo) => todo.id !== id));
-  };
+  const deleteTodo = useCallback((id: number): void => {
+    setTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
+  }, []);
 
-  //일괄 삭제
+  //일괄 삭제 개발중
   const deleteAll = (): void => {
     setTodos([]);
   };
 
   // 할일 수정 시작
-  const startEditing = (id: number): void => {
+  const startEditing = useCallback((id: number): void => {
     setEditingId(id);
-  };
+  }, []);
 
   // 할일 수정 완료
   const finishEditing = (id: number, newText: string): void => {
-    setTodos(
-      todos.map((todo) => (todo.id === id ? { ...todo, text: newText } : todo))
+    setTodos((prevTodos) =>
+      prevTodos.map((todo) =>
+        todo.id === id ? { ...todo, text: newText } : todo
+      )
     );
+    console.log(">>>>>>>>>>>>>>");
     setEditingId(null);
   };
 
   // 할일 완료 상태 토글
-  const toggleComplete = (id: number): void => {
-    setTodos(
-      todos.map((todo) =>
+  const toggleComplete = useCallback((id: number): void => {
+    setTodos((prevTodos) =>
+      prevTodos.map((todo) =>
         todo.id === id ? { ...todo, completed: !todo.completed } : todo
       )
     );
-  };
+  }, []);
 
   // 검색된 할일 목록
   const filteredTodos = todos.filter((todo) =>
@@ -115,8 +136,12 @@ function App() {
           setInputValue(e.target.value)
         }
         placeholder="할일 입력"
-        onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
-          handleKeyEnter({ e, pressType: "add" });
+        onKeyPress={(e: KeyboardEvent<HTMLInputElement>) => {
+          //onKeyDown 이상함~><
+          console.log(">>>handleKeyEnter");
+          if (e.key === "Enter") {
+            handleKeyEnter({ e, pressType: "add" });
+          }
         }}
       />
       <button onClick={addTodo}>추가</button>
@@ -138,17 +163,21 @@ function App() {
             {editingId === todoItem.id ? (
               //수정
               <input
+                autoFocus={true}
                 type="text"
                 defaultValue={todoItem.text}
                 onBlur={(e: ChangeEvent<HTMLInputElement>) =>
                   finishEditing(todoItem.id, e.target.value)
                 }
-                onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
-                  handleKeyEnter({
-                    e,
-                    pressType: "edit",
-                    selectedItem: todoItem,
-                  });
+                onKeyPress={(e: KeyboardEvent<HTMLInputElement>) => {
+                  //onKeyDown 이상함~><
+                  if (e.key === "Enter") {
+                    handleKeyEnter({
+                      e,
+                      pressType: "edit",
+                      selectedItem: todoItem,
+                    });
+                  }
                 }}
               />
             ) : (
