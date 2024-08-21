@@ -5,11 +5,14 @@ import React, {
   ChangeEvent,
   useCallback,
 } from "react";
-import { useCookies } from "react-cookie";
+import { AxiosInstance } from "./axios";
+import { AxiosResponse } from "axios";
 
 interface Todo {
   id: number;
-  text: string;
+  user_id?: number;
+  content: string;
+  date?: string;
   completed: boolean;
 }
 
@@ -35,19 +38,8 @@ function App() {
   const [searchValue, setSearchValue] = useState<string>("");
   const [editingId, setEditingId] = useState<number | null>(null);
 
-  /* 개발중
-  const [cookies, setCookies, removeCookies] = useCookies(); //setCookies('key', 쿠키에 넣을 값, 옵션) , removeCookies('key', 옵션) ,
-  /**
-   * path(string) : 쿠키 경로, / -> 모든 페이지에서 쿠키에 액세스 가능
-   * expires(Date) : 쿠키의 만료 날짜
-   * maxAge(number) : 클라이언트가 쿠키를 수신한 시점부터 들어간 인자값으로 n초후에 쿠키만료
-   * doamin(string) : 쿠키의 도메인(sub.domain.com 또는 .allsubdomains.com)
-   * secure(boolean) : HTTPS를 통해서만 액세스 가능
-   * httpOnly(booelan): 서버만 쿠키에 접근 가능
-   * sameSite (boolean | none | lax | strice) : Strict 또는 Lax 적용
   useEffect(() => {
-    // setCookies("todos", todos, { path: "/" });
-    // console.log(">>>.todos", todos);
+    setList();
   }, []);
 
   const customLog = (...args: any[]): void => {
@@ -56,7 +48,16 @@ function App() {
     }
     console.log(...args);
   };
-   */
+
+  const setList = () => {
+    AxiosInstance.get<Todo, AxiosResponse>("/todos", {
+      params: {
+        user_id: 4,
+      },
+    }).then((resp) => {
+      setTodos(resp.data);
+    });
+  };
 
   // 엔터 키 처리
   const handleKeyEnter = <T extends "add" | "edit">(
@@ -76,11 +77,19 @@ function App() {
   // 할일 추가
   const addTodo = (): void => {
     if (inputValue.trim() !== "") {
-      setTodos((prevTodos) => [
-        ...prevTodos,
-        { id: Date.now(), text: inputValue, completed: false },
-      ]);
-      setInputValue("");
+      AxiosInstance.post<Todo, AxiosResponse>("/todos", {
+        id: Date.now(),
+        content: inputValue,
+        date: "2024-08-20",
+        completed: true,
+        user_id: 4,
+      })
+        .then((resp) => {
+          setList();
+        })
+        .finally(() => {
+          setInputValue("");
+        });
     }
   };
 
@@ -101,13 +110,19 @@ function App() {
 
   // 할일 수정 완료
   const finishEditing = (id: number, newText: string): void => {
-    setTodos((prevTodos) =>
-      prevTodos.map((todo) =>
-        todo.id === id ? { ...todo, text: newText } : todo
-      )
-    );
-    console.log(">>>>>>>>>>>>>>");
-    setEditingId(null);
+    AxiosInstance.put<Todo, AxiosResponse>("/todos", {
+      id: id,
+      content: newText,
+      date: "2024-08-20",
+      completed: true,
+      user_id: 4,
+    })
+      .then((resp) => {
+        setList();
+      })
+      .finally(() => {
+        setEditingId(null);
+      });
   };
 
   // 할일 완료 상태 토글
@@ -121,7 +136,7 @@ function App() {
 
   // 검색된 할일 목록
   const filteredTodos = todos.filter((todo) =>
-    todo.text.toLowerCase().includes(searchValue.toLowerCase())
+    todo.content.toLowerCase().includes(searchValue.toLowerCase())
   );
 
   return (
@@ -137,8 +152,6 @@ function App() {
         }
         placeholder="할일 입력"
         onKeyPress={(e: KeyboardEvent<HTMLInputElement>) => {
-          //onKeyDown 이상함~><
-          console.log(">>>handleKeyEnter");
           if (e.key === "Enter") {
             handleKeyEnter({ e, pressType: "add" });
           }
@@ -165,12 +178,11 @@ function App() {
               <input
                 autoFocus={true}
                 type="text"
-                defaultValue={todoItem.text}
+                defaultValue={todoItem.content}
                 onBlur={(e: ChangeEvent<HTMLInputElement>) =>
                   finishEditing(todoItem.id, e.target.value)
                 }
                 onKeyPress={(e: KeyboardEvent<HTMLInputElement>) => {
-                  //onKeyDown 이상함~><
                   if (e.key === "Enter") {
                     handleKeyEnter({
                       e,
@@ -190,7 +202,7 @@ function App() {
                   }}
                   onClick={() => toggleComplete(todoItem.id)}
                 >
-                  {todoItem.text}
+                  {todoItem.content}
                 </span>
                 <button onClick={() => startEditing(todoItem.id)}>수정</button>
                 <button onClick={() => deleteTodo(todoItem.id)}>삭제</button>
