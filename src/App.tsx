@@ -89,7 +89,7 @@ function App() {
         user_id: 4,
       })
         .then((resp) => {
-          if (resp.status === 200) {
+          if (resp.status >= 200 && resp.status < 300) {
             setList();
           } else {
             // 실패
