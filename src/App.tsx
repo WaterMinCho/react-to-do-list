@@ -55,7 +55,11 @@ function App() {
         user_id: 4,
       },
     }).then((resp) => {
-      setTodos(resp.data);
+      if (resp.status === 200) {
+        setTodos(resp.data);
+      } else {
+        // 실패
+      }
     });
   };
 
@@ -85,7 +89,11 @@ function App() {
         user_id: 4,
       })
         .then((resp) => {
-          setList();
+          if (resp.status === 200) {
+            setList();
+          } else {
+            // 실패
+          }
         })
         .finally(() => {
           setInputValue("");
@@ -95,7 +103,18 @@ function App() {
 
   // 할일 삭제
   const deleteTodo = useCallback((id: number): void => {
-    setTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
+    AxiosInstance.delete<Todo, AxiosResponse>("/todos", {
+      params: {
+        id,
+        user_id: 4,
+      },
+    }).then((res) => {
+      if (res.status === 200) {
+        setTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
+      } else {
+        // 실패
+      }
+    });
   }, []);
 
   //일괄 삭제 개발중
@@ -118,7 +137,9 @@ function App() {
       user_id: 4,
     })
       .then((resp) => {
-        setList();
+        if (resp.status === 200) {
+          setList();
+        }
       })
       .finally(() => {
         setEditingId(null);
