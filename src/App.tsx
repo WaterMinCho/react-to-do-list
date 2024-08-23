@@ -74,7 +74,7 @@ function App() {
     }
     if (pressType === "edit") {
       const editProps = props as EditKeyEnterProps;
-      finishEditing(editProps.selectedItem.id, e.currentTarget.value);
+      finishEditing(editProps.selectedItem, e.currentTarget.value);
     }
   };
 
@@ -128,12 +128,12 @@ function App() {
   }, []);
 
   // 할일 수정 완료
-  const finishEditing = (id: number, newText: string): void => {
+  const finishEditing = (todoItem: Todo, newText: string): void => {
     AxiosInstance.put<Todo, AxiosResponse>("/todos", {
-      id: id,
+      id: todoItem?.id,
       content: newText,
       date: "2024-08-20",
-      completed: true,
+      completed: todoItem?.completed,
       user_id: 4,
     })
       .then((resp) => {
@@ -147,12 +147,22 @@ function App() {
   };
 
   // 할일 완료 상태 토글
-  const toggleComplete = useCallback((id: number): void => {
-    setTodos((prevTodos) =>
-      prevTodos.map((todo) =>
-        todo.id === id ? { ...todo, completed: !todo.completed } : todo
-      )
-    );
+  const toggleComplete = useCallback((todoItem: Todo): void => {
+    AxiosInstance.put<Todo, AxiosResponse>("/todos", {
+      id: todoItem?.id,
+      content: todoItem?.content,
+      date: "2024-08-20",
+      completed: false,
+      user_id: 4,
+    })
+      .then((resp) => {
+        if (resp.status === 200) {
+          setList();
+        }
+      })
+      .finally(() => {
+        setEditingId(null);
+      });
   }, []);
 
   // 검색된 할일 목록
@@ -201,7 +211,7 @@ function App() {
                 type="text"
                 defaultValue={todoItem.content}
                 onBlur={(e: ChangeEvent<HTMLInputElement>) =>
-                  finishEditing(todoItem.id, e.target.value)
+                  finishEditing(todoItem, e.target.value)
                 }
                 onKeyPress={(e: KeyboardEvent<HTMLInputElement>) => {
                   if (e.key === "Enter") {
@@ -221,7 +231,7 @@ function App() {
                       ? "line-through"
                       : "none",
                   }}
-                  onClick={() => toggleComplete(todoItem.id)}
+                  onClick={() => toggleComplete(todoItem)}
                 >
                   {todoItem.content}
                 </span>
