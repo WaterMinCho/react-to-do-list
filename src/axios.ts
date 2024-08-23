@@ -1,6 +1,11 @@
-import axios from "axios";
+import axios, {
+  InternalAxiosRequestConfig,
+  AxiosResponse,
+  AxiosError,
+} from "axios";
 
-const baseURL = "http://192.168.13.54:3000";
+const baseURL = process.env.REACT_APP_HOST_IP || "";
+
 export const AxiosInstance = axios.create({
   baseURL,
   headers: { "Content-Type": "application/json" },
@@ -8,7 +13,7 @@ export const AxiosInstance = axios.create({
 });
 
 AxiosInstance.interceptors.request.use(
-  (config) => {
+  (config: InternalAxiosRequestConfig) => {
     console.log(
       "Request:",
       config.method?.toUpperCase(),
@@ -18,7 +23,7 @@ AxiosInstance.interceptors.request.use(
     );
     return config;
   },
-  (error) => {
+  (error: AxiosError) => {
     console.error("Request Error:", error);
     return Promise.reject(error);
   }
@@ -26,7 +31,7 @@ AxiosInstance.interceptors.request.use(
 
 // 응답 인터셉터
 AxiosInstance.interceptors.response.use(
-  (response) => {
+  (response: AxiosResponse) => {
     console.log(
       "Response:",
       response.status,
@@ -36,7 +41,7 @@ AxiosInstance.interceptors.response.use(
     );
     return response;
   },
-  (error) => {
+  (error: AxiosError) => {
     console.error(
       "Response Error:",
       error.response?.status,
