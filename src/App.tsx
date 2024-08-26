@@ -2,27 +2,25 @@ import React, { useState, KeyboardEvent, ChangeEvent } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchTodos, addTodo, updateTodo, deleteTodo } from "./api";
 import dayjs from "dayjs";
-import styled, { keyframes, css } from "styled-components";
-
-interface Todo {
-  id: number;
-  user_id?: number;
-  content: string;
-  date?: string;
-  completed: boolean;
-}
+import styled, { keyframes, css, createGlobalStyle } from "styled-components";
 
 function App() {
   const [inputValue, setInputValue] = useState<string>("");
   const [searchValue, setSearchValue] = useState<string>("");
   const [editingId, setEditingId] = useState<number | null>(null);
 
-  const queryClient = useQueryClient();
-
   const { data: todos = [] } = useQuery<Todo[]>({
     queryKey: ["todos"],
     queryFn: fetchTodos,
-  });
+  }); //조회
+
+  const GlobalStyle = createGlobalStyle`
+  body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #f5f5f5;
+  }
+`;
+  const queryClient = useQueryClient();
 
   const addTodoMutation = useMutation({
     mutationFn: addTodo,
@@ -82,7 +80,7 @@ function App() {
         );
         queryClient.invalidateQueries({ queryKey: ["todos"] });
       } catch (error) {
-        console.error("Failed to delete all todos:", error);
+        console.error("전체삭제 에러:", error);
       }
     }
   };
@@ -90,88 +88,93 @@ function App() {
   const filteredTodos = todos.filter((todo) =>
     todo.content.toLowerCase().includes(searchValue.toLowerCase())
   );
+
   return (
-    <AppContainer>
-      <Title>할일목록</Title>
-      <InputContainer>
-        <StyledInput
-          type="text"
-          value={inputValue}
-          onChange={(e: ChangeEvent<HTMLInputElement>) =>
-            setInputValue(e.target.value)
-          }
-          placeholder="할일 입력"
-          onKeyUp={(e: KeyboardEvent<HTMLInputElement>) => {
-            if (e.key === "Enter") {
-              handleAddTodo();
+    <>
+      <GlobalStyle />
+      <AppContainer>
+        <Title>할일목록</Title>
+        <InputContainer>
+          <StyledInput
+            type="text"
+            value={inputValue}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setInputValue(e.target.value)
             }
-          }}
-        />
-        <StyledButton onClick={handleAddTodo}>추가</StyledButton>
-        <StyledButton
-          onClick={handleDeleteAllTodos}
-          disabled={todos.length === 0}
-        >
-          초기화
-        </StyledButton>
-      </InputContainer>
-      <InputContainer>
-        <StyledInput
-          type="text"
-          value={searchValue}
-          onChange={(e: ChangeEvent<HTMLInputElement>) =>
-            setSearchValue(e.target.value)
-          }
-          placeholder="검색"
-        />
-      </InputContainer>
-      <TodoList>
-        {filteredTodos.map((todo) => (
-          <TodoItem key={todo.id} onClick={() => handleToggleComplete(todo)}>
-            {editingId === todo.id ? (
-              <StyledInput
-                autoFocus
-                type="text"
-                defaultValue={todo.content}
-                onBlur={(e) => handleUpdateTodo(todo, e.target.value)}
-                onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
-                  if (e.key === "Enter")
-                    handleUpdateTodo(todo, e.currentTarget.value);
-                }}
-                onClick={(e) => e.stopPropagation()} // 이벤트 전파 방지
-              />
-            ) : (
-              <>
-                <TodoTextContainer>
-                  <Checkbox checked={todo.completed} />
-                  <TodoText $completed={todo.completed}>
-                    {todo.content}
-                  </TodoText>
-                </TodoTextContainer>
-                <ActionButtonContainer>
-                  <ActionButton
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEditingId(todo.id);
-                    }}
-                  >
-                    수정
-                  </ActionButton>
-                  <ActionButton
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteTodo(todo.id);
-                    }}
-                  >
-                    삭제
-                  </ActionButton>
-                </ActionButtonContainer>
-              </>
-            )}
-          </TodoItem>
-        ))}
-      </TodoList>
-    </AppContainer>
+            placeholder="할일 입력"
+            onKeyUp={(e: KeyboardEvent<HTMLInputElement>) => {
+              if (e.key === "Enter") {
+                handleAddTodo();
+              }
+            }}
+          />
+          <StyledButton onClick={handleAddTodo}>추가</StyledButton>
+          <StyledButton
+            onClick={handleDeleteAllTodos}
+            disabled={todos.length === 0}
+          >
+            초기화
+          </StyledButton>
+        </InputContainer>
+        <InputContainer>
+          <StyledInput
+            type="text"
+            value={searchValue}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setSearchValue(e.target.value)
+            }
+            placeholder="검색"
+          />
+        </InputContainer>
+        <TodoList>
+          {filteredTodos.map((todo, index) => (
+            <TodoItem key={todo.id} onClick={() => handleToggleComplete(todo)}>
+              <IndexContainer>{filteredTodos.length - index}.</IndexContainer>
+              {editingId === todo.id ? (
+                <StyledInput
+                  autoFocus
+                  type="text"
+                  defaultValue={todo.content}
+                  onBlur={(e) => handleUpdateTodo(todo, e.target.value)}
+                  onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
+                    if (e.key === "Enter")
+                      handleUpdateTodo(todo, e.currentTarget.value);
+                  }}
+                  onClick={(e) => e.stopPropagation()} // 이벤트 전파 방지
+                />
+              ) : (
+                <>
+                  <TodoTextContainer>
+                    <Checkbox checked={todo.completed} />
+                    <TodoText $completed={todo.completed}>
+                      {todo.content}
+                    </TodoText>
+                  </TodoTextContainer>
+                  <ActionButtonContainer>
+                    <ActionButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingId(todo.id);
+                      }}
+                    >
+                      수정
+                    </ActionButton>
+                    <ActionButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteTodo(todo.id);
+                      }}
+                    >
+                      삭제
+                    </ActionButton>
+                  </ActionButtonContainer>
+                </>
+              )}
+            </TodoItem>
+          ))}
+        </TodoList>
+      </AppContainer>
+    </>
   );
 }
 
@@ -184,8 +187,11 @@ const AppContainer = styled.div`
 `;
 
 const Title = styled.h1`
-  color: #333;
+  color: #333333;
   text-align: center;
+  font-weight: 500;
+  font-size: 2.5rem;
+  margin-bottom: 1.5rem;
 `;
 
 const InputContainer = styled.div`
@@ -200,7 +206,7 @@ const StyledInput = styled.input`
   flex: 1; // 남는 공간 모두 차지
   padding: 10px;
   margin-right: 10px;
-  border: 1px solid #ddd;
+  border: 1px solid #dddddd;
   border-radius: 4px;
   min-width: 0; // flex item shrinking 방지
 `;
@@ -211,14 +217,15 @@ const StyledButton = styled.button`
   color: white;
   padding: 10px 20px;
   text-align: center;
-  font-size: 16px;
+  font-size: 1rem;
+  font-weight: 500;
   cursor: pointer;
   border-radius: 4px;
   white-space: nowrap;
-  transition: opacity 0.2s ease-in-out;
+  transition: all 0.2s ease-in-out;
 
   &:hover {
-    opacity: 0.8;
+    background-color: #2a6ed1;
   }
 
   &:disabled {
@@ -237,13 +244,21 @@ const fadeIn = keyframes`
   to { opacity: 1; }
 `;
 
+const IndexContainer = styled.div`
+  min-width: 30px;
+  margin-right: 10px;
+  text-align: center;
+  font-weight: bold;
+  color: #3383fd;
+`;
+
 const TodoItem = styled.li`
   background-color: #f9f9f9;
-  border: 1px solid #ddd;
+  border: 1px solid #dddddd;
   padding: 10px;
   margin-bottom: 10px;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   transition: all 0.2s ease-in-out;
   cursor: pointer;
@@ -263,8 +278,10 @@ const TodoTextContainer = styled.div`
 const TodoText = styled.span<{ $completed: boolean }>`
   margin-left: 10px;
   text-decoration: ${(props) => (props.$completed ? "line-through" : "none")};
-  color: ${(props) => (props.$completed ? "#888" : "#333")};
+  color: ${(props) => (props.$completed ? "#888888" : "#333333")};
   transition: all 0.3s ease-in-out;
+  font-weight: 400;
+  font-size: 1rem;
 `;
 
 const Checkbox = styled.div<{ checked: boolean }>`
