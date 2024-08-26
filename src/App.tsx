@@ -1,6 +1,7 @@
 import React, { useState, KeyboardEvent, ChangeEvent } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchTodos, addTodo, updateTodo, deleteTodo } from "./api";
+import dayjs from "dayjs";
 
 interface Todo {
   id: number;
@@ -47,7 +48,7 @@ function App() {
     if (inputValue.trim() !== "") {
       addTodoMutation.mutate({
         content: inputValue,
-        date: "2024-08-20",
+        date: dayjs().format("YYYY-MM-DD"),
         completed: false,
         user_id: 4,
       });
@@ -56,7 +57,11 @@ function App() {
   };
 
   const handleUpdateTodo = (todo: Todo, newContent: string) => {
-    updateTodoMutation.mutate({ ...todo, content: newContent });
+    updateTodoMutation.mutate({
+      ...todo,
+      content: newContent,
+      date: dayjs().format("YYYY-MM-DD"),
+    });
     setEditingId(null);
   };
 
