@@ -83,7 +83,7 @@ function App() {
           setInputValue(e.target.value)
         }
         placeholder="할일 입력"
-        onKeyPress={(e: KeyboardEvent<HTMLInputElement>) => {
+        onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
           if (e.key === "Enter") handleAddTodo();
         }}
       />
@@ -107,7 +107,7 @@ function App() {
                 type="text"
                 defaultValue={todo.content}
                 onBlur={(e) => handleUpdateTodo(todo, e.target.value)}
-                onKeyPress={(e: KeyboardEvent<HTMLInputElement>) => {
+                onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
                   if (e.key === "Enter")
                     handleUpdateTodo(todo, e.currentTarget.value);
                 }}
