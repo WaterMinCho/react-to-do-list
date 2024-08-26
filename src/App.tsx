@@ -2,6 +2,7 @@ import React, { useState, KeyboardEvent, ChangeEvent } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchTodos, addTodo, updateTodo, deleteTodo } from "./api";
 import dayjs from "dayjs";
+import styled, { keyframes } from "styled-components";
 
 interface Todo {
   id: number;
@@ -76,38 +77,38 @@ function App() {
   const filteredTodos = todos.filter((todo) =>
     todo.content.toLowerCase().includes(searchValue.toLowerCase())
   );
-
   return (
-    <div className="App">
-      <h1>할일목록</h1>
-
-      <input
-        type="text"
-        value={inputValue}
-        onChange={(e: ChangeEvent<HTMLInputElement>) =>
-          setInputValue(e.target.value)
-        }
-        placeholder="할일 입력"
-        onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
-          if (e.key === "Enter") handleAddTodo();
-        }}
-      />
-      <button onClick={handleAddTodo}>추가</button>
-
-      <input
-        type="text"
-        value={searchValue}
-        onChange={(e: ChangeEvent<HTMLInputElement>) =>
-          setSearchValue(e.target.value)
-        }
-        placeholder="검색"
-      />
-
-      <ul>
+    <AppContainer>
+      <Title>할일목록</Title>
+      <InputContainer>
+        <StyledInput
+          type="text"
+          value={inputValue}
+          onChange={(e: ChangeEvent<HTMLInputElement>) =>
+            setInputValue(e.target.value)
+          }
+          placeholder="할일 입력"
+          onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
+            if (e.key === "Enter") handleAddTodo();
+          }}
+        />
+        <StyledButton onClick={handleAddTodo}>추가</StyledButton>
+      </InputContainer>
+      <InputContainer>
+        <StyledInput
+          type="text"
+          value={searchValue}
+          onChange={(e: ChangeEvent<HTMLInputElement>) =>
+            setSearchValue(e.target.value)
+          }
+          placeholder="검색"
+        />
+      </InputContainer>
+      <TodoList>
         {filteredTodos.map((todo) => (
-          <li key={todo.id}>
+          <TodoItem key={todo.id} onClick={() => handleToggleComplete(todo)}>
             {editingId === todo.id ? (
-              <input
+              <StyledInput
                 autoFocus
                 type="text"
                 defaultValue={todo.content}
@@ -119,23 +120,110 @@ function App() {
               />
             ) : (
               <>
-                <span
-                  style={{
-                    textDecoration: todo.completed ? "line-through" : "none",
-                  }}
-                  onClick={() => handleToggleComplete(todo)}
-                >
-                  {todo.content}
-                </span>
-                <button onClick={() => setEditingId(todo.id)}>수정</button>
-                <button onClick={() => handleDeleteTodo(todo.id)}>삭제</button>
+                <TodoText completed={todo.completed}>{todo.content}</TodoText>
+                <div>
+                  <ActionButton onClick={() => setEditingId(todo.id)}>
+                    수정
+                  </ActionButton>
+                  <ActionButton onClick={() => handleDeleteTodo(todo.id)}>
+                    삭제
+                  </ActionButton>
+                </div>
               </>
             )}
-          </li>
+          </TodoItem>
         ))}
-      </ul>
-    </div>
+      </TodoList>
+    </AppContainer>
   );
 }
+
+const AppContainer = styled.div`
+  max-width: 800px; // 원하는 최대 너비로 조정
+  width: 100%;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+`;
+
+const Title = styled.h1`
+  color: #333;
+  text-align: center;
+`;
+
+const InputContainer = styled.div`
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  width: 100%; // 컨테이너가 전체 너비를 차지하도록 설정
+`;
+
+const StyledInput = styled.input`
+  flex: 1; // 남는 공간 모두 차지
+  padding: 10px;
+  margin-right: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  min-width: 0; // flex item shrinking 방지
+`;
+
+const StyledButton = styled.button`
+  background-color: #3383fd;
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  text-align: center;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  white-space: nowrap;
+`;
+
+const TodoList = styled.ul`
+  list-style-type: none;
+  padding: 0;
+`;
+
+const clickAnimation = keyframes`
+0% {
+  transform: scale(1);
+}
+50% {
+  transform: scale(0.97);
+}
+100% {
+  transform: scale(1);
+}
+`;
+
+const TodoItem = styled.li`
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+
+  &:hover {
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+
+  &:active {
+    animation: ${clickAnimation} 0.3s ease-in-out;
+  }
+`;
+
+const TodoText = styled.span<{ completed: boolean }>`
+  text-decoration: ${(props) => (props.completed ? "line-through" : "none")};
+  flex-grow: 1;
+`;
+
+const ActionButton = styled(StyledButton)`
+  padding: 5px 10px;
+  margin-left: 5px;
+`;
 
 export default App;
