@@ -2,7 +2,7 @@ import React, { useState, KeyboardEvent, ChangeEvent } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchTodos, addTodo, updateTodo, deleteTodo } from "./api";
 import dayjs from "dayjs";
-import styled, { keyframes } from "styled-components";
+import styled, { keyframes, css } from "styled-components";
 
 interface Todo {
   id: number;
@@ -74,6 +74,19 @@ function App() {
     deleteTodoMutation.mutate(id);
   };
 
+  const handleDeleteAllTodos = async () => {
+    if (window.confirm("모든 할 일을 삭제하시겠습니까?")) {
+      try {
+        await Promise.all(
+          todos.map((todo) => deleteTodoMutation.mutateAsync(todo.id))
+        );
+        queryClient.invalidateQueries({ queryKey: ["todos"] });
+      } catch (error) {
+        console.error("Failed to delete all todos:", error);
+      }
+    }
+  };
+
   const filteredTodos = todos.filter((todo) =>
     todo.content.toLowerCase().includes(searchValue.toLowerCase())
   );
@@ -88,11 +101,19 @@ function App() {
             setInputValue(e.target.value)
           }
           placeholder="할일 입력"
-          onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
-            if (e.key === "Enter") handleAddTodo();
+          onKeyUp={(e: KeyboardEvent<HTMLInputElement>) => {
+            if (e.key === "Enter") {
+              handleAddTodo();
+            }
           }}
         />
         <StyledButton onClick={handleAddTodo}>추가</StyledButton>
+        <StyledButton
+          onClick={handleDeleteAllTodos}
+          disabled={todos.length === 0}
+        >
+          초기화
+        </StyledButton>
       </InputContainer>
       <InputContainer>
         <StyledInput
@@ -117,18 +138,34 @@ function App() {
                   if (e.key === "Enter")
                     handleUpdateTodo(todo, e.currentTarget.value);
                 }}
+                onClick={(e) => e.stopPropagation()} // 이벤트 전파 방지
               />
             ) : (
               <>
-                <TodoText completed={todo.completed}>{todo.content}</TodoText>
-                <div>
-                  <ActionButton onClick={() => setEditingId(todo.id)}>
+                <TodoTextContainer>
+                  <Checkbox checked={todo.completed} />
+                  <TodoText $completed={todo.completed}>
+                    {todo.content}
+                  </TodoText>
+                </TodoTextContainer>
+                <ActionButtonContainer>
+                  <ActionButton
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingId(todo.id);
+                    }}
+                  >
                     수정
                   </ActionButton>
-                  <ActionButton onClick={() => handleDeleteTodo(todo.id)}>
+                  <ActionButton
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteTodo(todo.id);
+                    }}
+                  >
                     삭제
                   </ActionButton>
-                </div>
+                </ActionButtonContainer>
               </>
             )}
           </TodoItem>
@@ -155,7 +192,8 @@ const InputContainer = styled.div`
   display: flex;
   align-items: center;
   margin-bottom: 10px;
-  width: 100%; // 컨테이너가 전체 너비를 차지하도록 설정
+  width: 100%;
+  gap: 10px; // 요소들 사이의 간격 추가
 `;
 
 const StyledInput = styled.input`
@@ -177,6 +215,16 @@ const StyledButton = styled.button`
   cursor: pointer;
   border-radius: 4px;
   white-space: nowrap;
+  transition: opacity 0.2s ease-in-out;
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  &:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+  }
 `;
 
 const TodoList = styled.ul`
@@ -184,16 +232,9 @@ const TodoList = styled.ul`
   padding: 0;
 `;
 
-const clickAnimation = keyframes`
-0% {
-  transform: scale(1);
-}
-50% {
-  transform: scale(0.97);
-}
-100% {
-  transform: scale(1);
-}
+const fadeIn = keyframes`
+  from { opacity: 0; }
+  to { opacity: 1; }
 `;
 
 const TodoItem = styled.li`
@@ -209,21 +250,57 @@ const TodoItem = styled.li`
 
   &:hover {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  }
-
-  &:active {
-    animation: ${clickAnimation} 0.3s ease-in-out;
+    background-color: #f0f0f0;
   }
 `;
 
-const TodoText = styled.span<{ completed: boolean }>`
-  text-decoration: ${(props) => (props.completed ? "line-through" : "none")};
+const TodoTextContainer = styled.div`
+  display: flex;
+  align-items: center;
   flex-grow: 1;
+`;
+
+const TodoText = styled.span<{ $completed: boolean }>`
+  margin-left: 10px;
+  text-decoration: ${(props) => (props.$completed ? "line-through" : "none")};
+  color: ${(props) => (props.$completed ? "#888" : "#333")};
+  transition: all 0.3s ease-in-out;
+`;
+
+const Checkbox = styled.div<{ checked: boolean }>`
+  width: 20px;
+  height: 20px;
+  border: 2px solid #3383fd;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease-in-out;
+
+  ${(props) =>
+    props.checked &&
+    css`
+      background-color: #3383fd;
+      &:after {
+        content: "✓";
+        color: white;
+        font-size: 14px;
+        animation: ${fadeIn} 0.2s ease-in-out;
+      }
+    `}
+`;
+
+const ActionButtonContainer = styled.div`
+  display: flex;
 `;
 
 const ActionButton = styled(StyledButton)`
   padding: 5px 10px;
   margin-left: 5px;
+
+  &:hover {
+    opacity: 0.8;
+  }
 `;
 
 export default App;
