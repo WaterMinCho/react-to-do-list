@@ -1,12 +1,6 @@
-import React, {
-  useState,
-  useEffect,
-  KeyboardEvent,
-  ChangeEvent,
-  useCallback,
-} from "react";
-import { AxiosInstance } from "./axios";
-import { AxiosResponse } from "axios";
+import React, { useState, KeyboardEvent, ChangeEvent } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { fetchTodos, addTodo, updateTodo, deleteTodo } from "./api";
 
 interface Todo {
   id: number;
@@ -16,156 +10,64 @@ interface Todo {
   completed: boolean;
 }
 
-type AddKeyEnterProps = {
-  e: KeyboardEvent<HTMLInputElement>;
-  pressType: "add";
-};
-
-type EditKeyEnterProps = {
-  e: KeyboardEvent<HTMLInputElement>;
-  pressType: "edit";
-  selectedItem: Todo;
-};
-
-// 조건부 타입을 사용하여 pressType에 따라 selectedItem의 필요 여부 결정
-type HandleKeyEnterProps<T extends "add" | "edit"> = T extends "add"
-  ? AddKeyEnterProps
-  : EditKeyEnterProps;
-
 function App() {
-  const [todos, setTodos] = useState<Todo[]>([]);
   const [inputValue, setInputValue] = useState<string>("");
   const [searchValue, setSearchValue] = useState<string>("");
   const [editingId, setEditingId] = useState<number | null>(null);
 
-  useEffect(() => {
-    setList();
-  }, []);
+  const queryClient = useQueryClient();
 
-  const customLog = (...args: any[]): void => {
-    if (module.hot) {
-      console.clear();
-    }
-    console.log(...args);
-  };
+  const { data: todos = [] } = useQuery<Todo[]>({
+    queryKey: ["todos"],
+    queryFn: fetchTodos,
+  });
 
-  const setList = () => {
-    AxiosInstance.get<Todo, AxiosResponse>("/todos", {
-      params: {
-        user_id: 4,
-      },
-    }).then((resp) => {
-      if (resp.status === 200) {
-        setTodos(resp.data);
-      } else {
-        // 실패
-      }
-    });
-  };
+  const addTodoMutation = useMutation({
+    mutationFn: addTodo,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["todos"] });
+    },
+  });
 
-  // 엔터 키 처리
-  const handleKeyEnter = <T extends "add" | "edit">(
-    props: HandleKeyEnterProps<T>
-  ): void => {
-    const { e, pressType } = props;
+  const updateTodoMutation = useMutation({
+    mutationFn: updateTodo,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["todos"] });
+    },
+  });
 
-    if (pressType === "add") {
-      addTodo();
-    }
-    if (pressType === "edit") {
-      const editProps = props as EditKeyEnterProps;
-      finishEditing(editProps.selectedItem, e.currentTarget.value);
-    }
-  };
+  const deleteTodoMutation = useMutation({
+    mutationFn: deleteTodo,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["todos"] });
+    },
+  });
 
-  // 할일 추가
-  const addTodo = (): void => {
+  const handleAddTodo = () => {
     if (inputValue.trim() !== "") {
-      AxiosInstance.post<Todo, AxiosResponse>("/todos", {
-        id: Date.now(),
+      addTodoMutation.mutate({
         content: inputValue,
         date: "2024-08-20",
-        completed: true,
+        completed: false,
         user_id: 4,
-      })
-        .then((resp) => {
-          if (resp.status >= 200 && resp.status < 300) {
-            setList();
-          } else {
-            // 실패
-          }
-        })
-        .finally(() => {
-          setInputValue("");
-        });
+      });
+      setInputValue("");
     }
   };
 
-  // 할일 삭제
-  const deleteTodo = useCallback((id: number): void => {
-    AxiosInstance.delete<Todo, AxiosResponse>("/todos", {
-      params: {
-        id,
-        user_id: 4,
-      },
-    }).then((res) => {
-      if (res.status === 200) {
-        setTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
-      } else {
-        // 실패
-      }
-    });
-  }, []);
-
-  //일괄 삭제 개발중
-  const deleteAll = (): void => {
-    setTodos([]);
+  const handleUpdateTodo = (todo: Todo, newContent: string) => {
+    updateTodoMutation.mutate({ ...todo, content: newContent });
+    setEditingId(null);
   };
 
-  // 할일 수정 시작
-  const startEditing = useCallback((id: number): void => {
-    setEditingId(id);
-  }, []);
-
-  // 할일 수정 완료
-  const finishEditing = (todoItem: Todo, newText: string): void => {
-    AxiosInstance.put<Todo, AxiosResponse>("/todos", {
-      id: todoItem?.id,
-      content: newText,
-      date: "2024-08-20",
-      completed: todoItem?.completed,
-      user_id: 4,
-    })
-      .then((resp) => {
-        if (resp.status === 200) {
-          setList();
-        }
-      })
-      .finally(() => {
-        setEditingId(null);
-      });
+  const handleToggleComplete = (todo: Todo) => {
+    updateTodoMutation.mutate({ ...todo, completed: !todo.completed });
   };
 
-  // 할일 완료 상태 토글
-  const toggleComplete = useCallback((todoItem: Todo): void => {
-    AxiosInstance.put<Todo, AxiosResponse>("/todos", {
-      id: todoItem?.id,
-      content: todoItem?.content,
-      date: "2024-08-20",
-      completed: false,
-      user_id: 4,
-    })
-      .then((resp) => {
-        if (resp.status === 200) {
-          setList();
-        }
-      })
-      .finally(() => {
-        setEditingId(null);
-      });
-  }, []);
+  const handleDeleteTodo = (id: number) => {
+    deleteTodoMutation.mutate(id);
+  };
 
-  // 검색된 할일 목록
   const filteredTodos = todos.filter((todo) =>
     todo.content.toLowerCase().includes(searchValue.toLowerCase())
   );
@@ -174,7 +76,6 @@ function App() {
     <div className="App">
       <h1>할일목록</h1>
 
-      {/* 할일 입력 및 추가 */}
       <input
         type="text"
         value={inputValue}
@@ -183,14 +84,11 @@ function App() {
         }
         placeholder="할일 입력"
         onKeyPress={(e: KeyboardEvent<HTMLInputElement>) => {
-          if (e.key === "Enter") {
-            handleKeyEnter({ e, pressType: "add" });
-          }
+          if (e.key === "Enter") handleAddTodo();
         }}
       />
-      <button onClick={addTodo}>추가</button>
+      <button onClick={handleAddTodo}>추가</button>
 
-      {/* 검색 */}
       <input
         type="text"
         value={searchValue}
@@ -200,43 +98,32 @@ function App() {
         placeholder="검색"
       />
 
-      {/* 할일 목록 */}
       <ul>
-        {filteredTodos.map((todoItem) => (
-          <li key={todoItem.id}>
-            {editingId === todoItem.id ? (
-              //수정
+        {filteredTodos.map((todo) => (
+          <li key={todo.id}>
+            {editingId === todo.id ? (
               <input
-                autoFocus={true}
+                autoFocus
                 type="text"
-                defaultValue={todoItem.content}
-                onBlur={(e: ChangeEvent<HTMLInputElement>) =>
-                  finishEditing(todoItem, e.target.value)
-                }
+                defaultValue={todo.content}
+                onBlur={(e) => handleUpdateTodo(todo, e.target.value)}
                 onKeyPress={(e: KeyboardEvent<HTMLInputElement>) => {
-                  if (e.key === "Enter") {
-                    handleKeyEnter({
-                      e,
-                      pressType: "edit",
-                      selectedItem: todoItem,
-                    });
-                  }
+                  if (e.key === "Enter")
+                    handleUpdateTodo(todo, e.currentTarget.value);
                 }}
               />
             ) : (
               <>
                 <span
                   style={{
-                    textDecoration: todoItem.completed
-                      ? "line-through"
-                      : "none",
+                    textDecoration: todo.completed ? "line-through" : "none",
                   }}
-                  onClick={() => toggleComplete(todoItem)}
+                  onClick={() => handleToggleComplete(todo)}
                 >
-                  {todoItem.content}
+                  {todo.content}
                 </span>
-                <button onClick={() => startEditing(todoItem.id)}>수정</button>
-                <button onClick={() => deleteTodo(todoItem.id)}>삭제</button>
+                <button onClick={() => setEditingId(todo.id)}>수정</button>
+                <button onClick={() => handleDeleteTodo(todo.id)}>삭제</button>
               </>
             )}
           </li>

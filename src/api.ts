@@ -1,8 +1,4 @@
-import axios, {
-  InternalAxiosRequestConfig,
-  AxiosResponse,
-  AxiosError,
-} from "axios";
+import axios, { AxiosError } from "axios";
 
 const baseURL = process.env.REACT_APP_HOST_IP || "";
 
@@ -13,7 +9,7 @@ export const AxiosInstance = axios.create({
 });
 
 AxiosInstance.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
+  (config) => {
     console.log(
       "Request:",
       config.method?.toUpperCase(),
@@ -29,9 +25,8 @@ AxiosInstance.interceptors.request.use(
   }
 );
 
-// 응답 인터셉터
 AxiosInstance.interceptors.response.use(
-  (response: AxiosResponse) => {
+  (response) => {
     console.log(
       "Response:",
       response.status,
@@ -52,3 +47,19 @@ AxiosInstance.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+export const fetchTodos = () =>
+  AxiosInstance.get("/todos", { params: { user_id: 4 } }).then(
+    (res) => res.data
+  );
+
+export const addTodo = (newTodo: Omit<Todo, "id">) =>
+  AxiosInstance.post("/todos", newTodo).then((res) => res.data);
+
+export const updateTodo = (updatedTodo: Todo) =>
+  AxiosInstance.put("/todos", updatedTodo).then((res) => res.data);
+
+export const deleteTodo = (id: number) =>
+  AxiosInstance.delete("/todos", { params: { id, user_id: 4 } }).then(
+    (res) => res.data
+  );
