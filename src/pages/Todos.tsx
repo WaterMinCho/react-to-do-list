@@ -1,10 +1,11 @@
-import React, { useState, KeyboardEvent, ChangeEvent } from "react";
+import React, { useState, KeyboardEvent, ChangeEvent, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchTodos, addTodo, updateTodo, deleteTodo } from "../../api";
+import { fetchTodos, addTodo, updateTodo, deleteTodo } from "../api";
+import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
-import styled, { keyframes, css } from "styled-components";
+import styled, { css } from "styled-components";
 
-const Todos = () => {
+const Todos: React.FC = () => {
   const [inputValue, setInputValue] = useState<string>("");
   const [searchValue, setSearchValue] = useState<string>("");
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -35,6 +36,21 @@ const Todos = () => {
       queryClient.invalidateQueries({ queryKey: ["todos"] });
     },
   });
+
+  //로그인 여부 확인(상세로직 수정 필요)
+  const navigate = useNavigate();
+  useEffect(() => {
+    const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+    if (!isLoggedIn) {
+      navigate("/login");
+    }
+  }, [navigate]);
+
+  //로그아웃
+  const handleLogout = () => {
+    localStorage.removeItem("isLoggedIn");
+    navigate("/login");
+  };
 
   const handleAddTodo = () => {
     if (inputValue.trim() !== "") {
@@ -136,8 +152,8 @@ const Todos = () => {
               <>
                 <TodoTextContainer>
                   <Checkbox checked={todo.completed} />
-                  <TodoText $completed={todo.completed}>
-                    {todo.content}
+                  <TodoText completed={todo.completed}>
+                    {todo?.content}
                   </TodoText>
                 </TodoTextContainer>
                 <ActionButtonContainer>
@@ -163,10 +179,12 @@ const Todos = () => {
           </TodoItem>
         ))}
       </TodoList>
+      <button onClick={handleLogout}>Logout</button>
     </>
   );
 };
 
+export default Todos;
 const Title = styled.h1`
   color: #333333;
   text-align: center;
@@ -203,7 +221,7 @@ const StyledButton = styled.button`
   cursor: pointer;
   border-radius: 4px;
   white-space: nowrap;
-  transition: all 0.2s ease-in-out;
+  transition: all 0.3s ease-in-out;
 
   &:hover {
     background-color: #2a6ed1;
@@ -218,11 +236,6 @@ const StyledButton = styled.button`
 const TodoList = styled.ul`
   list-style-type: none;
   padding: 0;
-`;
-
-const fadeIn = keyframes`
-  from { opacity: 0; }
-  to { opacity: 1; }
 `;
 
 const IndexContainer = styled.div`
@@ -241,7 +254,7 @@ const TodoItem = styled.li`
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  transition: all 0.2s ease-in-out;
+  transition: all 0.3s ease-in-out;
   cursor: pointer;
 
   &:hover {
@@ -256,10 +269,10 @@ const TodoTextContainer = styled.div`
   flex-grow: 1;
 `;
 
-const TodoText = styled.span<{ $completed: boolean }>`
-  margin-left: 10px;
-  text-decoration: ${(props) => (props.$completed ? "line-through" : "none")};
-  color: ${(props) => (props.$completed ? "#888888" : "#333333")};
+const TodoText = styled.span<{ completed: boolean }>`
+  margin-left: 6px;
+  text-decoration: ${(props) => (props.completed ? "line-through" : "none")};
+  color: ${(props) => (props.completed ? "#778899" : "#333333")};
   transition: all 0.3s ease-in-out;
   font-weight: 400;
   font-size: 1rem;
@@ -269,21 +282,20 @@ const Checkbox = styled.div<{ checked: boolean }>`
   width: 20px;
   height: 20px;
   border: 2px solid #3383fd;
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease-in-out;
+  transition: all 0.3s ease-in-out;
 
   ${(props) =>
     props.checked &&
     css`
       background-color: #3383fd;
+      border-radius: 50%;
       &:after {
         content: "✓";
         color: white;
-        font-size: 14px;
-        animation: ${fadeIn} 0.2s ease-in-out;
+        font-size: 16px;
       }
     `}
 `;
@@ -295,9 +307,7 @@ const ActionButtonContainer = styled.div`
 const ActionButton = styled(StyledButton)`
   padding: 5px 10px;
   margin-left: 5px;
-
   &:hover {
-    opacity: 0.8;
+    opacity: 0.7;
   }
 `;
-export default Todos;
