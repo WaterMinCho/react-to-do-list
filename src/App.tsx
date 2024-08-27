@@ -8,6 +8,7 @@ import {
 import styled, { createGlobalStyle } from "styled-components";
 import { generateRoutes } from "./utils/routeUtils";
 import Todos from "./pages/Todos";
+import { CookiesProvider } from "react-cookie";
 
 const GlobalStyle = createGlobalStyle`
 body {
@@ -19,10 +20,11 @@ body {
 function App() {
   const routes = generateRoutes();
   return (
-    <Router>
-      <GlobalStyle />
-      <AppContainer>
-        {/* <StyledLink
+    <CookiesProvider>
+      <Router>
+        <GlobalStyle />
+        <AppContainer>
+          {/* <StyledLink
           to="/todos"
           style={({ isActive }) =>
             isActive ? { color: "#fd4877", textDecoration: "underline" } : {}
@@ -30,20 +32,21 @@ function App() {
         >
           Todos
         </StyledLink> */}
-        <Routes>
-          <Route path="/" element={<Todos />} />
-          <Route path="/todos" element={<Navigate to="/" replace />} />
-          {routes.map((route) => (
-            <Route
-              key={route?.path}
-              path={route?.path}
-              element={route?.element}
-            />
-          ))}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </AppContainer>
-    </Router>
+          <Routes>
+            <Route path="/" element={<Todos />} />
+            <Route path="/todos" element={<Navigate to="/" replace />} />
+            {routes.map((route) => (
+              <Route
+                key={route?.path}
+                path={route?.path}
+                element={route?.element}
+              />
+            ))}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </AppContainer>
+      </Router>
+    </CookiesProvider>
   );
 }
 

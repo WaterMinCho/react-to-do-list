@@ -2,10 +2,12 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { loginUser, LoginFormInputs, AxiosError } from "../api";
+import { useCookies } from "react-cookie";
 import styled from "styled-components";
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
+  const [cookies, setCookie] = useCookies(["userid"]);
   const {
     register,
     handleSubmit,
@@ -17,8 +19,12 @@ const Login: React.FC = () => {
     try {
       const response = await loginUser(data);
       console.log("로그인 성공:", response);
-      localStorage.setItem("isLoggedIn", "true");
-      localStorage.setItem("userId", response.id.toString());
+      // 쿠키에 userid 저장 (7일 동안 유효)
+      setCookie("userid", response.id.toString(), {
+        path: "/",
+        maxAge: 7 * 24 * 60 * 60,
+      }); // 7 days
+
       window.alert("로그인 완료!");
       navigate("/");
     } catch (error) {

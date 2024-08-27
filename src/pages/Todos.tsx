@@ -4,11 +4,16 @@ import { fetchTodos, addTodo, updateTodo, deleteTodo } from "../api";
 import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import styled, { css } from "styled-components";
+import { useCookies } from "react-cookie";
 
 const Todos: React.FC = () => {
+  const [cookies, setCookie, removeCookie] = useCookies(["userid"]);
   const [inputValue, setInputValue] = useState<string>("");
   const [searchValue, setSearchValue] = useState<string>("");
   const [editingId, setEditingId] = useState<number | null>(null);
+
+  //로그인 여부 확인
+  const navigate = useNavigate();
 
   const { data: todos = [] } = useQuery<Todo[]>({
     queryKey: ["todos"],
@@ -37,18 +42,15 @@ const Todos: React.FC = () => {
     },
   });
 
-  //로그인 여부 확인(상세로직 수정 필요)
-  const navigate = useNavigate();
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
-    if (!isLoggedIn) {
+    if (!cookies.userid) {
       navigate("/login");
     }
-  }, [navigate]);
+  }, [cookies?.userid, navigate]);
 
   //로그아웃
   const handleLogout = () => {
-    localStorage.removeItem("isLoggedIn");
+    removeCookie("userid", { path: "/" });
     navigate("/login");
   };
 
@@ -58,7 +60,7 @@ const Todos: React.FC = () => {
         content: inputValue,
         date: dayjs().format("YYYY-MM-DD"),
         completed: false,
-        user_id: 4,
+        user_id: parseInt(cookies.userid),
       });
       setInputValue("");
     }
@@ -154,8 +156,8 @@ const Todos: React.FC = () => {
               ) : (
                 <>
                   <TodoTextContainer>
-                    <Checkbox checked={todo.completed} />
-                    <TodoText completed={todo.completed}>
+                    <Checkbox $checked={todo.completed} />
+                    <TodoText $completed={todo.completed}>
                       {todo?.content}
                     </TodoText>
                   </TodoTextContainer>
@@ -276,16 +278,16 @@ const TodoTextContainer = styled.div`
   flex-grow: 1;
 `;
 
-const TodoText = styled.span<{ completed: boolean }>`
+const TodoText = styled.span<{ $completed: boolean }>`
   margin-left: 6px;
-  text-decoration: ${(props) => (props.completed ? "line-through" : "none")};
-  color: ${(props) => (props.completed ? "#778899" : "#333333")};
+  text-decoration: ${(props) => (props.$completed ? "line-through" : "none")};
+  color: ${(props) => (props.$completed ? "#778899" : "#333333")};
   transition: all 0.3s ease-in-out;
   font-weight: 400;
   font-size: 1rem;
 `;
 
-const Checkbox = styled.div<{ checked: boolean }>`
+const Checkbox = styled.div<{ $checked: boolean }>`
   width: 20px;
   height: 20px;
   border: 2px solid #3383fd;
@@ -295,7 +297,7 @@ const Checkbox = styled.div<{ checked: boolean }>`
   transition: all 0.3s ease-in-out;
 
   ${(props) =>
-    props.checked &&
+    props.$checked &&
     css`
       background-color: #3383fd;
       border-radius: 50%;

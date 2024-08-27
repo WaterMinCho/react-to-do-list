@@ -1,4 +1,5 @@
 import axios, { AxiosError } from "axios";
+import { Cookies } from "react-cookie";
 
 const baseURL = process.env.REACT_APP_HOST_IP || "";
 // 로그인 폼 인터페이스
@@ -7,6 +8,7 @@ export interface LoginFormInputs {
   userpassword: string;
 }
 
+const cookies = new Cookies();
 // 회원가입 폼 인터페이스
 export interface JoinFormInputs {
   userid: string;
@@ -23,6 +25,20 @@ export const AxiosInstance = axios.create({
   headers: { "Content-Type": "application/json" },
   timeout: 10 * 1000,
 });
+
+// userid주입하는 인터셉터 추가.
+AxiosInstance.interceptors.request.use(
+  (config) => {
+    const userid = cookies.get("userid");
+    if (userid) {
+      config.params = { ...config.params, user_id: userid };
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 AxiosInstance.interceptors.request.use(
   (config) => {
