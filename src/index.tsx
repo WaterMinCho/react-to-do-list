@@ -1,6 +1,5 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
@@ -16,7 +15,6 @@ const queryClient = new QueryClient({
         // 현재 시간과 마지막 데이터 업데이트 시간의 차이를 계산
         const lastUpdated = dayjs(query.state.dataUpdatedAt);
         const now = dayjs();
-
         const minutesSinceLastUpdate = now.diff(lastUpdated, "minute");
         if (minutesSinceLastUpdate >= 1) {
           // 1분 이상 지났을 때 윈도우 focus되면 리페치
