@@ -1,6 +1,22 @@
 import axios, { AxiosError } from "axios";
 
 const baseURL = process.env.REACT_APP_HOST_IP || "";
+// 로그인 폼 인터페이스
+export interface LoginFormInputs {
+  userid: string;
+  userpassword: string;
+}
+
+// 회원가입 폼 인터페이스
+export interface JoinFormInputs {
+  userid: string;
+  password: string;
+  username: string;
+  email: string;
+  address1: string;
+  address2: string;
+  zipcode: string;
+}
 
 export const AxiosInstance = axios.create({
   baseURL,
@@ -48,11 +64,11 @@ AxiosInstance.interceptors.response.use(
   }
 );
 
+//todos
 export const fetchTodos = () =>
   AxiosInstance.get("/todos", { params: { user_id: 4 } }).then(
     (res) => res.data
   );
-
 export const addTodo = (newTodo: Omit<Todo, "id">) =>
   AxiosInstance.post("/todos", newTodo).then((res) => res.data);
 
@@ -63,3 +79,12 @@ export const deleteTodo = (id: number) =>
   AxiosInstance.delete("/todos", { params: { id, user_id: 4 } }).then(
     (res) => res.data
   );
+
+//Join/Login
+export const loginUser = (credentials: LoginFormInputs) =>
+  AxiosInstance.post("/login", credentials).then((res) => res.data);
+
+export const joinUser = (userData: JoinFormInputs) =>
+  AxiosInstance.post("/users", userData).then((res) => res.data);
+
+export { AxiosError };

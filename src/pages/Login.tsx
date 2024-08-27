@@ -1,12 +1,8 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import { loginUser, LoginFormInputs, AxiosError } from "../api";
 import styled from "styled-components";
-
-interface LoginFormInputs {
-  id: string;
-  password: string;
-}
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -14,27 +10,32 @@ const Login: React.FC = () => {
     register,
     handleSubmit,
     formState: { errors },
+    setError,
   } = useForm<LoginFormInputs>();
 
-  const onSubmit = (data: LoginFormInputs) => {
-    // 로그인 로직 구현
-    console.log(data); // 실제 구현 시 이 부분을 API 호출 등으로 대체
-    // if(유효한 계정){
-    //   navigate("/");
-    //   localStorage.setItem("isLoggedIn", "true"); //또는 쿠키 사용
-    // }else{
-    //   //등록되지 않았는가?
-    //   //비밀번호가 틀렸는가?
-    //   //아이디가 틀렸는가?
-
-    //   //그래서 계정을 만들러 갈건가?
-    // }
-    // ------------------------------------------
-    localStorage.setItem("isLoggedIn", "true");
-    window.alert("로그인 완료!");
-    navigate("/");
+  const onSubmit = async (data: LoginFormInputs) => {
+    try {
+      const response = await loginUser(data);
+      console.log("로그인 성공:", response);
+      localStorage.setItem("isLoggedIn", "true");
+      localStorage.setItem("userId", response.id.toString());
+      window.alert("로그인 완료!");
+      navigate("/");
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        if (error.response?.status === 401) {
+          setError("userpassword", {
+            type: "manual",
+            message: "아이디 또는 비밀번호가 올바르지 않습니다.",
+          });
+        } else {
+          window.alert("로그인 중 오류가 발생했습니다. 다시 시도해주세요.");
+        }
+      } else {
+        window.alert("알 수 없는 오류가 발생했습니다.");
+      }
+    }
   };
-
   return (
     <LoginContainer>
       <LoginTitle>어서오세여</LoginTitle>
@@ -45,19 +46,23 @@ const Login: React.FC = () => {
             <Input
               id="id"
               type="text"
-              {...register("id", { required: "아이디를 입력해주세요" })}
+              {...register("userid", { required: "아이디를 입력해주세요" })}
             />
-            {errors.id && <ErrorMessage>{errors.id.message}</ErrorMessage>}
+            {errors.userid && (
+              <ErrorMessage>{errors.userid.message}</ErrorMessage>
+            )}
           </InputGroup>
           <InputGroup>
             <Label htmlFor="password">비밀번호</Label>
             <Input
               id="password"
               type="password"
-              {...register("password", { required: "패스워드를 입력해주세요" })}
+              {...register("userpassword", {
+                required: "패스워드를 입력해주세요",
+              })}
             />
-            {errors.password && (
-              <ErrorMessage>{errors.password.message}</ErrorMessage>
+            {errors.userpassword && (
+              <ErrorMessage>{errors.userpassword.message}</ErrorMessage>
             )}
           </InputGroup>
         </InputContainer>
