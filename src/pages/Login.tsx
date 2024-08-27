@@ -8,7 +8,7 @@ const Login: React.FC = () => {
     // 로그인 로직 구현
     localStorage.setItem("isLoggedIn", "true");
     window.alert("로그인 완료!");
-    navigate("/");
+    navigate("/"); //Root(Todos로 이동)
   };
 
   return (

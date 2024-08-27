@@ -98,101 +98,109 @@ const Todos: React.FC = () => {
     todo.content.toLowerCase().includes(searchValue.toLowerCase())
   );
   return (
-    <>
-      <Title>할일목록</Title>
-      <InputContainer>
-        <StyledInput
-          type="text"
-          value={inputValue}
-          onChange={(e: ChangeEvent<HTMLInputElement>) =>
-            setInputValue(e.target.value)
-          }
-          placeholder="할일 입력"
-          onKeyUp={(e: KeyboardEvent<HTMLInputElement>) => {
-            if (e.key === "Enter") {
-              handleAddTodo();
+    <TodosContainer>
+      <HeaderContainer>
+        <ActionButton onClick={handleLogout}>Logout</ActionButton>
+      </HeaderContainer>
+      <ContentContainer>
+        <InputContainer>
+          <StyledInput
+            type="text"
+            value={inputValue}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setInputValue(e.target.value)
             }
-          }}
-        />
-        <StyledButton onClick={handleAddTodo}>추가</StyledButton>
-        <StyledButton
-          onClick={handleDeleteAllTodos}
-          disabled={todos.length === 0}
-        >
-          초기화
-        </StyledButton>
-      </InputContainer>
-      <InputContainer>
-        <StyledInput
-          type="text"
-          value={searchValue}
-          onChange={(e: ChangeEvent<HTMLInputElement>) =>
-            setSearchValue(e.target.value)
-          }
-          placeholder="검색"
-        />
-      </InputContainer>
-      <TodoList>
-        {filteredTodos.map((todo, index) => (
-          <TodoItem key={todo.id} onClick={() => handleToggleComplete(todo)}>
-            <IndexContainer>{filteredTodos.length - index}.</IndexContainer>
-            {editingId === todo.id ? (
-              <StyledInput
-                autoFocus
-                type="text"
-                defaultValue={todo.content}
-                onBlur={(e) => handleUpdateTodo(todo, e.target.value)}
-                onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
-                  if (e.key === "Enter")
-                    handleUpdateTodo(todo, e.currentTarget.value);
-                }}
-                onClick={(e) => e.stopPropagation()} // 이벤트 전파 방지
-              />
-            ) : (
-              <>
-                <TodoTextContainer>
-                  <Checkbox checked={todo.completed} />
-                  <TodoText completed={todo.completed}>
-                    {todo?.content}
-                  </TodoText>
-                </TodoTextContainer>
-                <ActionButtonContainer>
-                  <ActionButton
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEditingId(todo.id);
-                    }}
-                  >
-                    수정
-                  </ActionButton>
-                  <ActionButton
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteTodo(todo.id);
-                    }}
-                  >
-                    삭제
-                  </ActionButton>
-                </ActionButtonContainer>
-              </>
-            )}
-          </TodoItem>
-        ))}
-      </TodoList>
-      <button onClick={handleLogout}>Logout</button>
-    </>
+            placeholder="할일 입력"
+            onKeyUp={(e: KeyboardEvent<HTMLInputElement>) => {
+              if (e.key === "Enter") {
+                handleAddTodo();
+              }
+            }}
+          />
+          <StyledButton onClick={handleAddTodo}>추가</StyledButton>
+          <StyledButton
+            onClick={handleDeleteAllTodos}
+            disabled={todos.length === 0}
+          >
+            초기화
+          </StyledButton>
+        </InputContainer>
+        <InputContainer>
+          <StyledInput
+            type="text"
+            value={searchValue}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setSearchValue(e.target.value)
+            }
+            placeholder="검색"
+          />
+        </InputContainer>
+        <TodoList>
+          {filteredTodos.map((todo, index) => (
+            <TodoItem key={todo.id} onClick={() => handleToggleComplete(todo)}>
+              <IndexContainer>{filteredTodos.length - index}.</IndexContainer>
+              {editingId === todo.id ? (
+                <StyledInput
+                  autoFocus
+                  type="text"
+                  defaultValue={todo.content}
+                  onBlur={(e) => handleUpdateTodo(todo, e.target.value)}
+                  onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
+                    if (e.key === "Enter")
+                      handleUpdateTodo(todo, e.currentTarget.value);
+                  }}
+                  onClick={(e) => e.stopPropagation()} // 이벤트 전파 방지
+                />
+              ) : (
+                <>
+                  <TodoTextContainer>
+                    <Checkbox checked={todo.completed} />
+                    <TodoText completed={todo.completed}>
+                      {todo?.content}
+                    </TodoText>
+                  </TodoTextContainer>
+                  <ActionButtonContainer>
+                    <ActionButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingId(todo.id);
+                      }}
+                    >
+                      수정
+                    </ActionButton>
+                    <ActionButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteTodo(todo.id);
+                      }}
+                    >
+                      삭제
+                    </ActionButton>
+                  </ActionButtonContainer>
+                </>
+              )}
+            </TodoItem>
+          ))}
+        </TodoList>
+      </ContentContainer>
+    </TodosContainer>
   );
 };
 
 export default Todos;
-const Title = styled.h1`
-  color: #333333;
-  text-align: center;
-  font-weight: 500;
-  font-size: 2.5rem;
-  margin-bottom: 1.5rem;
+const TodosContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: 100%;
 `;
-
+const HeaderContainer = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+`;
+const ContentContainer = styled.div`
+  width: 100%;
+`;
 const InputContainer = styled.div`
   display: flex;
   align-items: center;
@@ -200,7 +208,6 @@ const InputContainer = styled.div`
   width: 100%;
   gap: 10px; // 요소들 사이의 간격 추가
 `;
-
 const StyledInput = styled.input`
   flex: 1; // 남는 공간 모두 차지
   padding: 10px;

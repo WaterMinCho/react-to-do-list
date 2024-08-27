@@ -15,8 +15,8 @@ export function generateRoutes(): RouteConfig[] {
         .replace(/^\.\//, "")
         .replace(/\.tsx$/, "")
         .toLowerCase();
-      const ComponentModule = context(key);
-      const Component = ComponentModule.default || ComponentModule;
+      const ComponentModule = context(key); //특정 키(경로)에 해당하는 모듈을 반환.
+      const Component = ComponentModule?.default || ComponentModule;
       return {
         path: `/${path}`,
         element: React.createElement(Component),

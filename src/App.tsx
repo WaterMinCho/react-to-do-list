@@ -48,11 +48,10 @@ function App() {
 }
 
 const AppContainer = styled.div`
-  max-width: 800px; // 원하는 최대 너비로 조정
+  max-width: 1200px;
   width: 100%;
   margin: 0 auto;
   padding: 20px;
-  font-family: Arial, sans-serif;
 `;
 const StyledLink = styled(NavLink)`
   margin-right: 10px;
