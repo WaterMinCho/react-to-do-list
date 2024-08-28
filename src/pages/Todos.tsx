@@ -2,6 +2,7 @@ import React, { useState, KeyboardEvent, ChangeEvent, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchTodos, addTodo, updateTodo, deleteTodo } from "../api";
 import { useNavigate } from "react-router-dom";
+import { isInitialMatch } from "../utils/str";
 import dayjs from "dayjs";
 import styled, { css } from "styled-components";
 import { useCookies } from "react-cookie";
@@ -96,9 +97,18 @@ const Todos: React.FC = () => {
     }
   };
 
-  const filteredTodos = todos.filter((todo) =>
-    todo.content.toLowerCase().includes(searchValue.toLowerCase())
-  );
+  const filteredTodos = todos.filter((todo) => {
+    if (searchValue === "") return true; // 검색어가 없으면 모든 항목 표시
+    const lowerCaseSearch = searchValue.toLowerCase();
+    const lowerCaseContent = todo.content.toLowerCase();
+
+    // 완전 일치 검색
+    if (lowerCaseContent.includes(lowerCaseSearch)) return true;
+
+    // 초성 검색
+    return isInitialMatch(todo.content, searchValue);
+  });
+
   return (
     <TodosContainer>
       <HeaderContainer>
