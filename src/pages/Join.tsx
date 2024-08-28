@@ -36,7 +36,7 @@ const Join: React.FC = () => {
     }
   };
 
-  const handleComplete = (data: any) => {
+  const handleAdressComplete = (data: any) => {
     let fullAddress = data.address;
     console.log("Adress Complete: ", data);
     let extraAddress = "";
@@ -147,7 +147,7 @@ const Join: React.FC = () => {
       {isAddressModalOpen && (
         <ModalBackground>
           <ModalContent>
-            <DaumPostcode onComplete={handleComplete} />
+            <DaumPostcode onComplete={handleAdressComplete} />
             <CloseButton onClick={() => setIsAddressModalOpen(false)}>
               닫기
             </CloseButton>
