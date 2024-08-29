@@ -134,7 +134,7 @@ const Todos: React.FC = () => {
             onClick={handleDeleteAllTodos}
             disabled={todos.length === 0}
           >
-            초기화
+            리스트전체삭제
           </StyledButton>
         </InputContainer>
         <InputContainer>
@@ -223,7 +223,6 @@ const InputContainer = styled.div`
 const StyledInput = styled.input`
   flex: 1; // 남는 공간 모두 차지
   padding: 10px;
-  margin-right: 10px;
   border: 1px solid #dddddd;
   border-radius: 4px;
   min-width: 0; // flex item shrinking 방지
