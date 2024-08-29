@@ -41,11 +41,6 @@ const Login: React.FC = () => {
 
   const onSubmit = async (data: LoginFormInputs) => {
     // 로그인완료 여부에 무관하게 아이디 저장
-    // rememberMe가 true일 경우에만 쿠키에 userid 저장
-    setCookie("userid", data.userid.toString(), {
-      path: "/",
-      maxAge: rememberMe ? 7 * 24 * 60 * 60 : undefined, // 'Remember Me' 체크 시 7일, 아니면 세션 쿠키
-    });
 
     try {
       await loginUser(data);
@@ -71,7 +66,7 @@ const Login: React.FC = () => {
       }
     }
 
-    // 아이디 저장 처리
+    // rememberMe가 true일 경우에만 쿠키에 userid 저장
     if (rememberMe) {
       setCookie("rememberedUserId", data.userid, {
         path: "/",
