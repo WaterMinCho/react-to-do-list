@@ -18,7 +18,9 @@ const queryClient = new QueryClient({
         const minutesSinceLastUpdate = now.diff(lastUpdated, "minute");
         if (minutesSinceLastUpdate >= 1) {
           // 1분 이상 지났을 때 윈도우 focus되면 리페치
-          console.log("-----------REFETCHING DATA WITH FOUCS-----------");
+          console.log(
+            "-------------------REFETCHING DATA WITH FOUCS--------------------"
+          );
           return true;
         } else {
           return false;
