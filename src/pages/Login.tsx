@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { loginUser, LoginFormInputs, AxiosError } from "../api";
@@ -7,25 +7,51 @@ import styled from "styled-components";
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
-  const [cookies, setCookie] = useCookies(["userid"]);
+  const [cookies, setCookie, removeCookie] = useCookies([
+    "userid",
+    "rememberedUserId",
+  ]);
+  const [rememberMe, setRememberMe] = useState<boolean>(false); // 아이디 저장 상태 관리
   const {
     register,
     handleSubmit,
     formState: { errors },
     setError,
+    setValue,
   } = useForm<LoginFormInputs>();
 
-  const onSubmit = async (data: LoginFormInputs) => {
-    try {
-      const response = await loginUser(data);
-      console.log("로그인 성공:", response);
-      // 쿠키에 userid 저장 (7일 동안 유효)
-      setCookie("userid", response.id.toString(), {
-        path: "/",
-        maxAge: 7 * 24 * 60 * 60,
-      }); // 7 days
+  useEffect(() => {
+    setRememberMe(cookies?.userid ? true : false);
+  }, [cookies.userid]);
 
+  useEffect(() => {
+    const savedUserId = cookies.rememberedUserId;
+    if (savedUserId) {
+      setValue("userid", savedUserId);
+      setRememberMe(true);
+    }
+  }, []);
+
+  // 아이디 저장 체크박스 상태 변경
+  const handleRememberMeChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setRememberMe(event.target.checked);
+  };
+
+  const onSubmit = async (data: LoginFormInputs) => {
+    navigate("/");
+    // 로그인완료 여부에 무관하게 아이디 저장
+    // rememberMe가 true일 경우에만 쿠키에 userid 저장
+    setCookie("userid", data.userid.toString(), {
+      path: "/",
+      maxAge: rememberMe ? 7 * 24 * 60 * 60 : undefined, // 'Remember Me' 체크 시 7일, 아니면 세션 쿠키
+    });
+
+    try {
+      await loginUser(data);
       window.alert("로그인 완료!");
+
       navigate("/");
     } catch (error) {
       if (error instanceof AxiosError) {
@@ -41,10 +67,20 @@ const Login: React.FC = () => {
         window.alert("알 수 없는 오류가 발생했습니다.");
       }
     }
+
+    if (rememberMe) {
+      setCookie("rememberedUserId", data.userid, {
+        path: "/",
+        maxAge: 7 * 24 * 60 * 60, // 7일간 유효
+      });
+    } else {
+      removeCookie("rememberedUserId");
+    }
   };
+
   return (
     <LoginContainer>
-      <LoginTitle>어서오세여</LoginTitle>
+      <LoginTitle>어서오세요</LoginTitle>
       <LoginForm onSubmit={handleSubmit(onSubmit)}>
         <InputContainer>
           <InputGroup>
@@ -71,6 +107,17 @@ const Login: React.FC = () => {
               <ErrorMessage>{errors.userpassword.message}</ErrorMessage>
             )}
           </InputGroup>
+          {/* 아이디 저장 체크박스 */}
+          <CheckboxGroup>
+            <CheckboxLabel>
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={handleRememberMeChange}
+              />
+              아이디 저장
+            </CheckboxLabel>
+          </CheckboxGroup>
         </InputContainer>
         <ButtonGroup>
           <SubmitButton type="submit">로그인</SubmitButton>
@@ -83,6 +130,7 @@ const Login: React.FC = () => {
   );
 };
 
+// 스타일링
 const LoginContainer = styled.div`
   width: 100%;
   box-sizing: border-box;
@@ -160,6 +208,22 @@ const JoinButton = styled(Button)`
 
   &:hover {
     background-color: #e0e0e0;
+  }
+`;
+
+// 아이디 저장 체크박스 스타일링
+const CheckboxGroup = styled.div`
+  margin-top: 10px;
+`;
+
+const CheckboxLabel = styled.label`
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: #333;
+
+  input {
+    margin-right: 8px;
   }
 `;
 

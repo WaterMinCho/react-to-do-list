@@ -1,6 +1,6 @@
 import React from "react";
 
-interface RouteConfig {
+export interface RouteConfig {
   path: string;
   element: React.ReactNode;
 }
