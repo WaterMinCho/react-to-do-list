@@ -40,7 +40,6 @@ const Login: React.FC = () => {
   };
 
   const onSubmit = async (data: LoginFormInputs) => {
-    navigate("/");
     // 로그인완료 여부에 무관하게 아이디 저장
     // rememberMe가 true일 경우에만 쿠키에 userid 저장
     setCookie("userid", data.userid.toString(), {
@@ -51,7 +50,11 @@ const Login: React.FC = () => {
     try {
       await loginUser(data);
       window.alert("로그인 완료!");
-
+      // 로그인 성공 시 쿠키 설정
+      setCookie("userid", data.userid.toString(), {
+        path: "/",
+        maxAge: rememberMe ? 7 * 24 * 60 * 60 : undefined,
+      });
       navigate("/");
     } catch (error) {
       if (error instanceof AxiosError) {
@@ -68,6 +71,7 @@ const Login: React.FC = () => {
       }
     }
 
+    // 아이디 저장 처리
     if (rememberMe) {
       setCookie("rememberedUserId", data.userid, {
         path: "/",
