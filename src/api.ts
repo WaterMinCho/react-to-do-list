@@ -26,20 +26,6 @@ export const AxiosInstance = axios.create({
   timeout: 10 * 1000,
 });
 
-// userid주입하는 인터셉터 추가.
-AxiosInstance.interceptors.request.use(
-  (config) => {
-    const userid = cookies.get("userid");
-    if (userid) {
-      config.params = { ...config.params, user_id: userid };
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
 AxiosInstance.interceptors.request.use(
   (config) => {
     console.log(
@@ -81,10 +67,14 @@ AxiosInstance.interceptors.response.use(
 );
 
 //todos
-export const fetchTodos = () =>
-  AxiosInstance.get("/todos", { params: { user_id: 4 } }).then(
-    (res) => res.data
-  );
+export const fetchTodos = (date?: string) =>
+  AxiosInstance.get("/todos", {
+    params: {
+      user_id: 4,
+      date: date, // date 파라미터가 제공된 경우에만 포함
+    },
+  }).then((res) => res.data);
+
 export const addTodo = (newTodo: Omit<Todo, "id">) =>
   AxiosInstance.post("/todos", newTodo).then((res) => res.data);
 

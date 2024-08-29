@@ -17,9 +17,10 @@ const Todos: React.FC = () => {
   const navigate = useNavigate();
 
   const { data: todos = [] } = useQuery<Todo[]>({
-    queryKey: ["todos"],
-    queryFn: fetchTodos,
-  }); //조회
+    queryKey: ["todos", cookies.userid],
+    queryFn: () => fetchTodos(),
+  });
+
   const queryClient = useQueryClient();
 
   const addTodoMutation = useMutation({
