@@ -7,7 +7,6 @@
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
-    "@types/jest": "^27.5.2",
     "@types/node": "^16.18.105",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
@@ -27,8 +26,13 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
+    "test": "jest --config jest.config.ts",
     "eject": "react-scripts eject"
+  },
+  "jest": {
+    "reporters": [
+      "jest-summarizing-reporter"
+    ]
   },
   "eslintConfig": {
     "extends": [
@@ -49,6 +53,10 @@
     ]
   },
   "devDependencies": {
-    "@types/webpack-env": "^1.18.5"
+    "@types/jest": "^29.5.12",
+    "@types/webpack-env": "^1.18.5",
+    "jest-summarizing-reporter": "^1.1.4",
+    "ts-jest": "^29.2.5",
+    "ts-node": "^10.9.2"
   }
 }
