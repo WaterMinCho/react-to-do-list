@@ -1,3 +1,5 @@
+type Dependencies = Record<string, string>;
+
 const fs = require("fs");
 const path = require("path");
 
@@ -12,21 +14,26 @@ const devDependencies = packageJson.devDependencies || {};
 // 의존성 목록을 문자열로 변환
 const formatDependencies = (deps) => {
   return Object.keys(deps)
-    .map((dep) => `${dep}: ${deps[dep]}`)
+    .map((dep) => `- ${dep}: ${deps[dep]}`)
     .join("\n");
 };
+const newDependencyList = `# 의존성 목록
 
-const dependencyList = `# 의존성 목록\n\n## Dependencies\n${formatDependencies(
-  dependencies
-)}\n\n## DevDependencies\n${formatDependencies(devDependencies)}\n`;
+## Dependencies
+
+${formatDependencies(dependencies)}
+
+## DevDependencies
+
+${formatDependencies(devDependencies)}
+`;
 
 // 기존 의존성 목록과 비교하여 추가, 수정, 삭제된 항목 찾기
-const compareDependencies = (oldDeps, newDeps) => {
-  const added = [];
-  const updated = [];
-  const removed = [];
+const compareDependencies = (oldDeps: Dependencies, newDeps: Dependencies) => {
+  const added: string[] = [];
+  const updated: string[] = [];
+  const removed: string[] = [];
 
-  // 새로운 목록에서 추가되거나 수정된 항목 찾기
   Object.keys(newDeps).forEach((key) => {
     if (!oldDeps[key]) {
       added.push(`${key}: ${newDeps[key]}`); // 추가된 항목
@@ -35,7 +42,6 @@ const compareDependencies = (oldDeps, newDeps) => {
     }
   });
 
-  // 기존 목록에서 삭제된 항목 찾기
   Object.keys(oldDeps).forEach((key) => {
     if (!newDeps[key]) {
       removed.push(`${key}: ${oldDeps[key]}`); // 삭제된 항목
@@ -48,38 +54,48 @@ const compareDependencies = (oldDeps, newDeps) => {
 // README.md 파일을 읽어와 기존 의존성 목록 추출 및 변경 사항 출력
 fs.readFile(readmePath, "utf-8", (err, data) => {
   if (err) {
-    console.error("README.md 파일을 읽는 중 오류 발생:", err, "ㅜ");
+    console.error("README.md 파일을 읽는 중 오류 발생:", err);
     return;
   }
 
-  // 기존 README.md 파일에서 의존성 목록 추출
-  const oldDepsMatch = data.match(
-    /## Dependencies\n([\s\S]*?)\n\n## DevDependencies\n([\s\S]*?)(?=\n##|$)/
-  );
-  const oldDependencies = oldDepsMatch
-    ? oldDepsMatch[1]
-        .trim()
-        .split("\n")
-        .reduce((acc, line) => {
-          const [key, version] = line.split(": ");
-          acc[key] = version;
-          return acc;
-        }, {})
-    : {};
+  // 의존성 목록 섹션을 찾는 정규표현식
+  const dependencyListRegex = /# 의존성 목록[\s\S]*$/;
+  const match = data.match(dependencyListRegex);
 
-  const oldDevDepsMatch = data.match(
-    /## DevDependencies\n([\s\S]*?)(?=\n##|$)/
-  );
-  const oldDevDependencies = oldDevDepsMatch
-    ? oldDevDepsMatch[1]
+  let oldDependencies = {};
+  let oldDevDependencies = {};
+
+  if (match) {
+    const oldDependencyList = match[0];
+    const depsMatch = oldDependencyList.match(
+      /## Dependencies\n([\s\S]*?)\n\n## DevDependencies/
+    );
+    const devDepsMatch = oldDependencyList.match(
+      /## DevDependencies\n([\s\S]*?)$/
+    );
+
+    if (depsMatch) {
+      oldDependencies = depsMatch[1]
         .trim()
         .split("\n")
         .reduce((acc, line) => {
           const [key, version] = line.split(": ");
           acc[key] = version;
           return acc;
-        }, {})
-    : {};
+        }, {});
+    }
+
+    if (devDepsMatch) {
+      oldDevDependencies = devDepsMatch[1]
+        .trim()
+        .split("\n")
+        .reduce((acc, line) => {
+          const [key, version] = line.split(": ");
+          acc[key] = version;
+          return acc;
+        }, {});
+    }
+  }
 
   // Dependencies 비교 (추가/수정/삭제)
   const {
@@ -102,16 +118,6 @@ fs.readFile(readmePath, "utf-8", (err, data) => {
     updatedDevDeps.length ||
     removedDevDeps.length
   ) {
-    //결과 노출
-    //[예시]
-    //### 변경된 Dependencies 목록 ###
-    // 추가된 항목: axios: ^0.21.1
-    // 수정된 항목: react-query: ^3.5.0 -> ^3.9.0
-    // 삭제된 항목: lodash: ^4.17.20
-
-    // ### 변경된 DevDependencies 목록 ###
-    // 추가된 항목: typescript: ^4.1.3
-
     console.log("\n### 변경된 Dependencies 목록 ###");
     if (addedDeps.length) console.log("추가된 항목:", addedDeps.join(", "));
     if (updatedDeps.length) console.log("수정된 항목:", updatedDeps.join(", "));
@@ -132,10 +138,12 @@ fs.readFile(readmePath, "utf-8", (err, data) => {
   );
 
   // README.md 파일에서 기존 의존성 목록 부분을 교체
-  const updatedReadme = data.replace(
-    /# 의존성 목록[\s\S]*?(?=\n##|$)/,
-    dependencyList
-  );
+  let updatedReadme;
+  if (match) {
+    updatedReadme = data.replace(dependencyListRegex, newDependencyList);
+  } else {
+    updatedReadme = data + "\n\n" + newDependencyList;
+  }
 
   // README.md 파일을 업데이트
   fs.writeFile(readmePath, updatedReadme, "utf-8", (err) => {
