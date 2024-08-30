@@ -45,11 +45,6 @@ const Login: React.FC = () => {
     try {
       await loginUser(data);
       window.alert("로그인 완료!");
-      // 로그인 성공 시 쿠키 설정
-      setCookie("userid", data.userid.toString(), {
-        path: "/",
-        maxAge: rememberMe ? 7 * 24 * 60 * 60 : undefined,
-      });
       navigate("/");
     } catch (error) {
       if (error instanceof AxiosError) {
