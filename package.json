@@ -54,6 +54,7 @@
     ]
   },
   "devDependencies": {
+    "@tanstack/eslint-plugin-query": "^5.52.3",
     "@types/jest": "^29.5.12",
     "@types/webpack-env": "^1.18.5",
     "jest-summarizing-reporter": "^1.1.4",
