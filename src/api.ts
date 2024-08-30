@@ -1,5 +1,9 @@
 import axios, { AxiosError } from "axios";
+import { Cookies } from "react-cookie";
 const baseURL = process.env.REACT_APP_HOST_IP || "";
+
+const cookies = new Cookies();
+const getUserId = () => cookies.get("userid");
 // 로그인 폼 인터페이스
 export interface LoginFormInputs {
   userid: string;
@@ -67,7 +71,7 @@ AxiosInstance.interceptors.response.use(
 export const fetchTodos = (date?: string) =>
   AxiosInstance.get("/todos", {
     params: {
-      user_id: 4,
+      user_id: getUserId(),
       date: date, // date 파라미터가 제공된 경우에만 포함
     },
   }).then((res) => res.data);
@@ -79,7 +83,7 @@ export const updateTodo = (updatedTodo: Todo) =>
   AxiosInstance.put("/todos", updatedTodo).then((res) => res.data);
 
 export const deleteTodo = (id: number) =>
-  AxiosInstance.delete("/todos", { params: { id, user_id: 4 } }).then(
+  AxiosInstance.delete("/todos", { params: { id, user_id: getUserId() } }).then(
     (res) => res.data
   );
 

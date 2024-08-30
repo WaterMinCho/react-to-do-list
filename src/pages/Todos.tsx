@@ -17,8 +17,13 @@ const Todos: React.FC = () => {
   const navigate = useNavigate();
 
   const { data: todos = [] } = useQuery<Todo[]>({
-    queryKey: ["todos", cookies.userid],
-    queryFn: () => fetchTodos(),
+    queryKey: ["todos", dayjs().format("YYYY-MM-DD")],
+    queryFn: ({ queryKey }) => {
+      if (typeof queryKey[1] === "string") {
+        return fetchTodos(queryKey[1]);
+      }
+      throw new Error("Invalid query key");
+    },
   });
 
   const queryClient = useQueryClient();

@@ -43,7 +43,11 @@ const Login: React.FC = () => {
     // 로그인완료 여부에 무관하게 아이디 저장
 
     try {
-      await loginUser(data);
+      const response = await loginUser(data);
+      setCookie("userid", response.id, {
+        path: "/",
+        maxAge: 7 * 24 * 60 * 60, // 7일간 유효
+      });
       window.alert("로그인 완료!");
       navigate("/");
     } catch (error) {
