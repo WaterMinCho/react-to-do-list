@@ -13,6 +13,7 @@ const Join: React.FC = () => {
     setValue,
     formState: { errors },
   } = useForm<JoinFormInputs>();
+
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
 
   const onSubmit = async (data: JoinFormInputs) => {
@@ -157,6 +158,7 @@ const Join: React.FC = () => {
     </JoinContainer>
   );
 };
+export default Join;
 
 const JoinContainer = styled.div`
   display: flex;
@@ -270,4 +272,3 @@ const CloseButton = styled(Button)`
     background-color: #e0e0e0;
   }
 `;
-export default Join;
