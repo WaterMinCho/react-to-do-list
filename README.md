@@ -11,9 +11,9 @@
 
 `.env파일을 Root 디렉토리 바로 하위에 생성` 후 `REACT_APP_HOST_IP = API서버 경로` 기재하고 저장하면 서버통신 준비 끝.
 
-## 2. yarn instal
+## 2. yarn install
 
-해당 프로젝트는 yarn으로 세팅돼있습니다.
+해당 프로젝트의 패키지 매니저는 yarn으로 세팅돼있습니다.
 yarn이 없다면 `npm install --global yarn` 후 `yarn install`
 
 ## 3. 테스트코드 실행 명령
