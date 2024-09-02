@@ -38,7 +38,7 @@ yarn이 없다면 `npm install --global yarn` 후 `yarn install`
 - @testing-library/jest-dom: ^5.17.0
 - @testing-library/react: ^13.4.0
 - @testing-library/user-event: ^13.5.0
-- @types/node: ^16.18.105
+- @types/node: ^22.5.2
 - @types/react: ^18.3.3
 - @types/react-dom: ^18.3.0
 - axios: ^1.7.4
@@ -51,13 +51,16 @@ yarn이 없다면 `npm install --global yarn` 후 `yarn install`
 - react-router-dom: ^6.26.1
 - react-scripts: 5.0.1
 - styled-components: ^6.1.12
-- typescript: ^4.9.5
+- typescript: ^5.5.4
 - web-vitals: ^2.1.4
 
 ## DevDependencies
 
+- @tanstack/eslint-plugin-query: ^5.52.3
 - @types/jest: ^29.5.12
 - @types/webpack-env: ^1.18.5
+- eslint-plugin-react-refresh: ^0.4.11
 - jest-summarizing-reporter: ^1.1.4
+- npm: ^10.8.3
 - ts-jest: ^29.2.5
 - ts-node: ^10.9.2
