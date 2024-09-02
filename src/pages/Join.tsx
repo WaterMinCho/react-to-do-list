@@ -61,7 +61,6 @@ const Join: React.FC = () => {
 
   return (
     <JoinContainer>
-      <JoinTitle>회원가입</JoinTitle>
       <JoinForm onSubmit={handleSubmit(onSubmit)}>
         <InputGroup>
           <Label htmlFor="userid">아이디</Label>
@@ -183,10 +182,6 @@ const Input = styled.input`
   border: 1px solid #ddd;
   border-radius: 4px;
   box-sizing: border-box;
-`;
-const JoinTitle = styled.h1`
-  color: #333;
-  margin-bottom: 20px;
 `;
 
 const JoinForm = styled.form`

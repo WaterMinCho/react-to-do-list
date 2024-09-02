@@ -57,7 +57,9 @@
     "@tanstack/eslint-plugin-query": "^5.52.3",
     "@types/jest": "^29.5.12",
     "@types/webpack-env": "^1.18.5",
+    "eslint-plugin-react-refresh": "^0.4.11",
     "jest-summarizing-reporter": "^1.1.4",
+    "npm": "^10.8.3",
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2"
   }

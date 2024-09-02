@@ -8,7 +8,7 @@ import styled, { css } from "styled-components";
 import { useCookies } from "react-cookie";
 
 const Todos: React.FC = () => {
-  const [cookies, setCookie, removeCookie] = useCookies(["userid"]);
+  const [cookies] = useCookies(["userid"]);
   const [inputValue, setInputValue] = useState<string>("");
   const [searchValue, setSearchValue] = useState<string>("");
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -54,12 +54,6 @@ const Todos: React.FC = () => {
       navigate("/login");
     }
   }, [cookies?.userid, navigate]);
-
-  //로그아웃
-  const handleLogout = () => {
-    removeCookie("userid", { path: "/" });
-    navigate("/login");
-  };
 
   const handleAddTodo = () => {
     if (inputValue.trim() !== "") {
@@ -117,9 +111,6 @@ const Todos: React.FC = () => {
 
   return (
     <TodosContainer>
-      <HeaderContainer>
-        <ActionButton onClick={handleLogout}>Logout</ActionButton>
-      </HeaderContainer>
       <ContentContainer>
         <InputContainer>
           <StyledInput
@@ -210,11 +201,6 @@ const TodosContainer = styled.div`
   display: flex;
   flex-direction: column;
   width: 100%;
-`;
-const HeaderContainer = styled.div`
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 20px;
 `;
 const ContentContainer = styled.div`
   width: 100%;

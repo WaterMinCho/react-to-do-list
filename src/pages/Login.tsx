@@ -26,11 +26,19 @@ const Login: React.FC = () => {
 
   useEffect(() => {
     const savedUserId = cookies.rememberedUserId;
+
     if (savedUserId) {
-      setValue("userid", savedUserId);
-      setRememberMe(true);
+      setValue && setValue("userid", savedUserId);
+    } else {
+      setValue && setValue("userid", "");
     }
-  }, []);
+  }, [setValue]);
+
+  useEffect(() => {
+    if (!rememberMe) {
+      removeCookie("rememberedUserId");
+    }
+  }, [rememberMe, removeCookie]);
 
   // 아이디 저장 체크박스 상태 변경
   const handleRememberMeChange = (
@@ -72,13 +80,13 @@ const Login: React.FC = () => {
         maxAge: 7 * 24 * 60 * 60, // 7일간 유효
       });
     } else {
+      setValue("userid", "");
       removeCookie("rememberedUserId");
     }
   };
 
   return (
     <LoginContainer>
-      <LoginTitle>어서오세요</LoginTitle>
       <LoginForm onSubmit={handleSubmit(onSubmit)}>
         <InputContainer>
           <InputGroup>
@@ -127,6 +135,7 @@ const Login: React.FC = () => {
     </LoginContainer>
   );
 };
+export default Login;
 
 // 스타일링
 const LoginContainer = styled.div`
@@ -141,11 +150,6 @@ const LoginContainer = styled.div`
 const InputContainer = styled.div`
   width: 100%;
   box-sizing: border-box;
-`;
-
-const LoginTitle = styled.h1`
-  color: #333;
-  margin-bottom: 20px;
 `;
 
 const LoginForm = styled.form`
@@ -224,5 +228,3 @@ const CheckboxLabel = styled.label`
     margin-right: 8px;
   }
 `;
-
-export default Login;
