@@ -50,6 +50,7 @@
   },
   "devDependencies": {
     "@tanstack/eslint-plugin-query": "^5.52.3",
+    "@tanstack/react-query-devtools": "^5.54.1",
     "@types/jest": "^29.5.12",
     "@types/webpack-env": "^1.18.5",
     "eslint-plugin-react-refresh": "^0.4.11",
